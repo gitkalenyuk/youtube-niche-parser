@@ -331,6 +331,7 @@ td.gemcell{color:var(--accent);font-weight:800}
       <span class="spacer"></span>
       <button class="btn" id="csvBtn">💾 Зберегти CSV</button>
       <button class="btn" id="txtBtn">📋 Зберегти TXT</button>
+      <span id="saveMsg" style="font-size:13px;color:var(--muted);align-self:center;margin-left:8px"></span>
     </div>
     <div class="card tablewrap">
       <table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table>
@@ -613,19 +614,44 @@ function handleEvent(ev){
 function setRunning(on){ $('runBtn').style.display=on?'none':'flex'; $('stopBtn').style.display=on?'flex':'none'; }
 
 /* ---------- ЕКСПОРТ ---------- */
-function download(name,text,mime){ const b=new Blob(['﻿'+text],{type:mime+';charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; a.click(); }
+function saveMsg(msg,err){ const el=$('saveMsg'); if(!el)return; el.textContent=msg||''; el.style.color=err?'#ff6b6b':'var(--muted)'; }
+/* запасний шлях: пряме завантаження через blob (якщо сервер раптом недоступний) */
+function blobDownload(name,text,mime){
+  const b=new Blob(['﻿'+text],{type:mime+';charset=utf-8'});
+  const url=URL.createObjectURL(b);
+  const a=document.createElement('a'); a.href=url; a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+/* основний шлях: зберігає сам сервер у ~/Downloads (надійно в режимі Chrome --app) */
+async function saveFile(name,text,fmt,mime){
+  saveMsg('Зберігаю…');
+  try{
+    const res=await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({filename:name,content:text,format:fmt})});
+    const j=await res.json();
+    if(j&&j.ok){ saveMsg('✓ Збережено: '+j.path); return; }
+    throw new Error((j&&j.error)||'save failed');
+  }catch(e){
+    try{ blobDownload(name,text,mime); saveMsg('✓ Завантажено: '+name); }
+    catch(e2){ saveMsg('Помилка збереження: '+(e.message||e),true); }
+  }
+}
 $('csvBtn').onclick=()=>{
-  const rows=visibleRows(); if(!rows.length)return;
+  const rows=visibleRows(); if(!rows.length){ saveMsg('Немає даних для експорту',true); return; }
   const head=['запит','назва','канал','підписники','перегляди','V/S','дата','тривалість','url','id'];
   const keys=['query','title','channel','subs','views','ratio','publishedText','durationText','url','id'];
   const cell=v=>{ if(v==null)return''; const s=String(v); return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
-  const csv=[head.join(',')].concat(rows.map(r=>{ r.ratio=gemRatio(r)?gemRatio(r).toFixed(1):''; return keys.map(k=>cell(r[k])).join(','); })).join('\r\n');
-  download('youtube-nishi.csv',csv,'text/csv');
+  const csv=[head.join(',')].concat(rows.map(r=>{
+    const ratio=gemRatio(r)?gemRatio(r).toFixed(1):'';
+    return keys.map(k=> k==='ratio'?cell(ratio):cell(r[k])).join(',');
+  })).join('\r\n');
+  saveFile('youtube-nishi.csv',csv,'csv','text/csv');
 };
 $('txtBtn').onclick=()=>{
-  const rows=visibleRows(); if(!rows.length)return;
+  const rows=visibleRows(); if(!rows.length){ saveMsg('Немає даних для експорту',true); return; }
   const lines=rows.map(r=>{const x=gemRatio(r);return [r.query,r.title,r.channel||'—','підп:'+(r.subs==null?'—':r.subs),'перегл:'+(r.views==null?'—':r.views),'V/S:'+(x?x.toFixed(1)+'×':'—'),r.publishedText||'—',r.durationText||'—',r.url].join('  |  ');});
-  download('youtube-nishi.txt',lines.join('\r\n'),'text/plain');
+  saveFile('youtube-nishi.txt',lines.join('\r\n'),'txt','text/plain');
 };
 
 renderHead(); renderDash();

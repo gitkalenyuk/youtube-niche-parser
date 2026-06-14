@@ -33,7 +33,7 @@ python3 -m venv .buildenv
 # shellcheck disable=SC1091
 source .buildenv/bin/activate
 python -m pip install --quiet --upgrade pip
-python -m pip install --quiet pyinstaller
+python -m pip install --quiet pyinstaller certifi
 
 # 3) build the .app (Python interpreter bundled inside)
 echo "==> Building \"$APP_NAME.app\" ..."
@@ -44,6 +44,8 @@ pyinstaller --noconfirm --clean --windowed \
   --add-data "ui.html:." \
   --add-data "scraper.py:." \
   --hidden-import scraper \
+  --hidden-import certifi \
+  --collect-data certifi \
   app.py
 
 deactivate

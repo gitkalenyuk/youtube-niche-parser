@@ -17,9 +17,28 @@ import urllib.parse
 import json
 import re
 import base64
+import ssl
 
 UA = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36')
+
+
+# ---------------------------------------------------------------------------
+# SSL context — на macOS вбудований у .app Python (python.org / PyInstaller)
+# не має системних CA-сертифікатів, тому беремо їх з certifi, якщо є.
+# ---------------------------------------------------------------------------
+def _make_ssl_context():
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        try:
+            return ssl.create_default_context()
+        except Exception:
+            return None
+
+
+_SSL_CTX = _make_ssl_context()
 
 
 # ---------------------------------------------------------------------------
@@ -31,7 +50,7 @@ def http_get(url, hl='uk'):
         'Accept-Language': f'{hl},en;q=0.9',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     })
-    with urllib.request.urlopen(req, timeout=25) as r:
+    with urllib.request.urlopen(req, timeout=25, context=_SSL_CTX) as r:
         return r.status, r.read().decode('utf-8', 'replace')
 
 
@@ -42,7 +61,7 @@ def http_post_json(url, payload, hl='uk'):
         'Content-Type': 'application/json',
         'Accept-Language': f'{hl},en;q=0.9',
     })
-    with urllib.request.urlopen(req, timeout=25) as r:
+    with urllib.request.urlopen(req, timeout=25, context=_SSL_CTX) as r:
         return r.status, r.read().decode('utf-8', 'replace')
 
 

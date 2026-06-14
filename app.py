@@ -175,9 +175,50 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             pass
 
+    def _save(self):
+        # Зберігаємо експорт на диск самим сервером — у режимі Chrome --app
+        # завантаження через blob/<a download> ненадійне (нема панелі, мовчки гине).
+        length = int(self.headers.get('Content-Length') or 0)
+        try:
+            payload = json.loads(self.rfile.read(length).decode('utf-8'))
+        except Exception:
+            self._json({'error': 'bad json'}, 400)
+            return
+        content = payload.get('content')
+        if not isinstance(content, str):
+            self._json({'error': 'no content'}, 400)
+            return
+        fmt = 'txt' if payload.get('format') == 'txt' else 'csv'
+        name = os.path.basename(str(payload.get('filename') or '')) or ('youtube-nishi.' + fmt)
+        if not name.lower().endswith('.' + fmt):
+            name += '.' + fmt
+
+        target_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
+        if not os.path.isdir(target_dir):
+            target_dir = os.path.expanduser('~')
+
+        base, ext = os.path.splitext(name)
+        path = os.path.join(target_dir, name)
+        i = 1
+        while os.path.exists(path):
+            path = os.path.join(target_dir, f'{base} ({i}){ext}')
+            i += 1
+
+        # CSV з BOM (utf-8-sig) — щоб Excel коректно читав кирилицю; TXT — звичайний utf-8.
+        try:
+            with open(path, 'w', encoding=('utf-8-sig' if fmt == 'csv' else 'utf-8'), newline='') as f:
+                f.write(content)
+        except Exception as e:
+            self._json({'error': str(e)}, 500)
+            return
+        self._json({'ok': True, 'path': path})
+
     def do_POST(self):
         if self.path == '/api/bye':  # sendBeacon шле POST
             self._bye()
+            return
+        if self.path == '/api/save':
+            self._save()
             return
         if self.path != '/api/search':
             self.send_error(404)
