@@ -455,7 +455,9 @@ function visibleRows(){
   const ft=$('filterText').value.trim().toLowerCase();
   let rows = ROWS.filter(r=> !ft || (r.title+' '+r.channel+' '+r.query).toLowerCase().includes(ft));
   rows.sort((a,b)=>{
-    let x=a[sortKey], y=b[sortKey];
+    let x,y;
+    if(sortKey==='ratio'){ x=gemRatio(a); y=gemRatio(b); }   // V/S — обчислюване, а не поле рядка
+    else { x=a[sortKey]; y=b[sortKey]; }
     if(typeof x==='string'||typeof y==='string'){x=(x||'').toLowerCase();y=(y||'').toLowerCase();return x<y?-sortDir:x>y?sortDir:0;}
     x=x==null?-1:x; y=y==null?-1:y; return (x-y)*sortDir;
   });
