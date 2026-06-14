@@ -13,15 +13,82 @@
 
 ## 📥 Завантажити
 
-| Система | Файл | Що робити |
+| Система | Файл | Коротко |
 |---|---|---|
-| 🪟 **Windows** | **[⬇️ Завантажити .zip](../../releases/latest/download/YouTube-Niche-Parser-Windows.zip)** | Розпакуй → `START.bat`. Python усередині. |
-| 🍎 **Mac (готове)** | **[⬇️ Завантажити .dmg](../../releases/latest/download/YouTube-Niche-Parser.dmg)** | Відкрий → перетягни в Applications. Universal. |
-| 🍎 **Mac (вихідники)** | **[⬇️ Завантажити .zip](../../releases/latest/download/YouTube-Niche-Parser-Mac.zip)** | `START.command` (треба Python) або `build_mac.sh`. |
+| 🪟 **Windows** | **[⬇️ .zip](../../releases/latest/download/YouTube-Niche-Parser-Windows.zip)** | Розпакуй → `START.bat`. Python усередині. |
+| 🍎 **Mac (готове)** | **[⬇️ .dmg](../../releases/latest/download/YouTube-Niche-Parser.dmg)** | Перетягни в Applications. Universal. |
+| 🍎 **Mac (вихідники)** | **[⬇️ .zip](../../releases/latest/download/YouTube-Niche-Parser-Mac.zip)** | `START.command` або `build_mac.sh`. |
 
-📖 Інструкція — всередині кожного архіву (файл **«ЯК ЗАПУСТИТИ.txt»**).
+Нижче — **детальна інструкція для кожного варіанта** 👇
 
-> **Mac, перший запуск:** правий клік на проzі → «Відкрити» → «Відкрити» (бо непідписаний — це нормально).
+---
+
+## 🪟 Windows — `YouTube-Niche-Parser-Windows.zip`
+
+1. Завантаж архів і **розпакуй усю папку** (правий клік на zip → «Видобути все»).
+   > ⚠️ Саме розпакуй, не запускай прямо з архіву.
+2. Зайди в папку і двічі клікни **`START.bat`**.
+3. Якщо вискочить синє вікно **«Захист Windows / Windows protected your PC»**:
+   натисни **«Докладніше / More info»** → **«Виконати в будь-якому разі / Run anyway»**.
+   (Це бо файл скачаний з інтернету — він безпечний.)
+4. Відкриється вікно програми. Готово!
+
+**Що потрібно:** нічого. Python уже всередині (папка `runtime\`), бібліотек нема,
+Chrome не обов'язковий (підійде Edge — він є на кожному Windows).
+
+---
+
+## 🍎 Mac (готовий застосунок) — `YouTube-Niche-Parser.dmg`
+
+1. Завантаж **`.dmg`** і відкрий його (подвійний клік).
+2. У вікні, що з'явиться, **перетягни** `YouTube Niche Parser` у папку **Applications** (Програми).
+3. Відкрий папку **Програми** і знайди там застосунок.
+4. **⚠️ ПЕРШИЙ ЗАПУСК (важливо!):**
+   правий клік (або Ctrl+клік) на застосунку → **«Відкрити»** → у вікні ще раз **«Відкрити»**.
+   > Звичайний подвійний клік на першому запуску macOS заблокує — це нормально
+   > для безкоштовних застосунків без платного підпису Apple ($99/рік).
+   > Робиться це **лише один раз**, далі — звичайний подвійний клік.
+
+### 🛠 Якщо пише «застосунок пошкоджено» / "...is damaged and can't be opened"
+
+Це **не пошкодження** — це «карантин», який macOS чіпляє на все скачане з інтернету.
+Лікується **одною командою** в Терміналі (Programs → Utilities → Terminal):
+
+```bash
+xattr -cr "/Applications/YouTube Niche Parser.app"
+```
+
+Натисни Enter, потім відкривай застосунок як зазвичай (правий клік → «Відкрити»).
+
+### Альтернатива через налаштування
+
+**System Settings → Privacy & Security** → прокрути вниз → біля заблокованого
+застосунку натисни **«Open Anyway / Відкрити все одно»**.
+
+> 🪟 **Вікно «як прога»** відкриється, якщо на Mac є **Chrome або Edge**.
+> Якщо тільки Safari — відкриється як вкладка браузера (у Safari нема режиму вікна-додатка).
+>
+> 💻 Працює і на **Apple Silicon (M1/M2/M3...)**, і на **Intel** — застосунок universal.
+
+---
+
+## 🍎 Mac (вихідники + збірка) — `YouTube-Niche-Parser-Mac.zip`
+
+Цей варіант — для тих, хто хоче запустити без `.dmg` або зібрати свій `.app`.
+
+**Швидкий запуск (потрібен Python 3):**
+1. Перевір у Терміналі: `python3 --version`. Якщо нема — постав: `brew install python`
+   або з [python.org](https://www.python.org/downloads/).
+2. Розпакуй папку, двічі клікни **`START.command`**.
+   - Перший раз: правий клік → «Відкрити» → «Відкрити»
+     (або раз у Терміналі: `chmod +x START.command`).
+
+**Зібрати свій `.app` / `.dmg`:**
+```bash
+chmod +x build_mac.sh
+./build_mac.sh
+```
+На виході: `dist/YouTube Niche Parser.app` + `YouTube Niche Parser.dmg`.
 
 ---
 
@@ -39,7 +106,7 @@
 НЕ використовує твій акаунт і НЕ лізе в браузер. Робить **анонімні** запити до YouTube
 (як відвідувач в інкогніто) — без логіну, без кукі. Браузер потрібен лише щоб намалювати вікно.
 
-## 🛠 Збірка macOS .dmg
+## 🛠 Збірка macOS .dmg (для розробників)
 
 Автоматична через **GitHub Actions** ([`.github/workflows/build-mac.yml`](.github/workflows/build-mac.yml)):
 PyInstaller пакує застосунок + universal2 Python у `.app`, `hdiutil` робить `.dmg`, він публікується в Releases.

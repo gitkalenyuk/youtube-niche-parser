@@ -60,9 +60,12 @@ jobs:
 
             📥 Завантаж під свою систему:
             - 🪟 **Windows** — `YouTube-Niche-Parser-Windows.zip` (розпакуй → `START.bat`, Python усередині)
-            - 🍎 **Mac готове** — `YouTube-Niche-Parser.dmg` (universal; 1-й запуск: правий клік → Відкрити)
+            - 🍎 **Mac готове** — `YouTube-Niche-Parser.dmg` (universal; 1-й запуск: **правий клік → Відкрити → Відкрити**)
             - 🍎 **Mac вихідники** — `YouTube-Niche-Parser-Mac.zip` (`START.command` або `build_mac.sh`)
 
-            📖 Інструкція — всередині кожного архіву (файл «ЯК ЗАПУСТИТИ.txt»).
+            🍎 Якщо Mac пише «застосунок пошкоджено» — в Терміналі один раз:
+            `xattr -cr "/Applications/YouTube Niche Parser.app"`
+
+            📖 Повна детальна інструкція для кожного варіанта — на головній сторінці репозиторію (README).
           files: YouTube-Niche-Parser.dmg
           make_latest: true
