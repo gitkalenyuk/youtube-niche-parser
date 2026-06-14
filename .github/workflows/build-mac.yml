@@ -1,0 +1,60 @@
+name: Build macOS .dmg
+
+# Запуск: автоматично при завантаженні файлів (push) АБО вручну кнопкою "Run workflow"
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: write   # потрібно, щоб опублікувати Release з .dmg
+
+jobs:
+  build-dmg:
+    runs-on: macos-latest
+    steps:
+      - name: Завантажити код
+        uses: actions/checkout@v4
+
+      - name: Поставити universal2 Python (Intel + Apple Silicon)
+        run: |
+          curl -L -o python.pkg https://www.python.org/ftp/python/3.12.7/python-3.12.7-macos11.pkg
+          sudo installer -pkg python.pkg -target /
+          echo "/Library/Frameworks/Python.framework/Versions/3.12/bin" >> "$GITHUB_PATH"
+
+      - name: Поставити PyInstaller
+        run: |
+          python3.12 -m pip install --upgrade pip
+          python3.12 -m pip install pyinstaller
+
+      - name: Зібрати .app (universal2)
+        run: |
+          python3.12 -m PyInstaller --noconfirm --clean --windowed \
+            --name "YouTube Niche Parser" \
+            --osx-bundle-identifier "com.ytniche.parser" \
+            --target-arch universal2 \
+            --add-data "ui.html:." \
+            --add-data "scraper.py:." \
+            --hidden-import scraper \
+            app.py
+
+      - name: Створити .dmg
+        run: |
+          hdiutil create -volname "YouTube Niche Parser" \
+            -srcfolder "dist/YouTube Niche Parser.app" \
+            -ov -format UDZO "YouTube-Niche-Parser.dmg"
+
+      - name: Завантажити як артефакт (резервно)
+        uses: actions/upload-artifact@v4
+        with:
+          name: YouTube-Niche-Parser-dmg
+          path: YouTube-Niche-Parser.dmg
+
+      - name: Опублікувати Release з прямим посиланням на .dmg
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mac-latest
+          name: "YouTube Niche Parser — macOS"
+          body: "Самодостатній застосунок для macOS (.dmg). Universal: Intel + Apple Silicon. Завантаж і запускай."
+          files: YouTube-Niche-Parser.dmg
+          make_latest: true

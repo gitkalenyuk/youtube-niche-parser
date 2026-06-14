@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="uk" data-theme="neumorphic">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>YouTube Niche Parser Pro V3</title>
+<style>
+/* ============================================================
+   ТЕМИ: значення за замовчуванням = Neumorphic, інші перекривають
+   ============================================================ */
+:root{
+  --bg:#1b1f2e; --bg2:#1b1f2e;
+  --card:#1b1f2e; --card2:#20253a;
+  --text:#eef1fb; --muted:#8b93b0; --line:#2a3047;
+  --accent:#ff4d6d; --accent2:#4d7cff; --accent-grad:linear-gradient(135deg,#ff4d6d,#ff7eb3);
+  --radius:18px;
+  --shadow:7px 7px 16px #13161f, -7px -7px 16px #232a40;
+  --shadow-sm:4px 4px 9px #13161f, -4px -4px 9px #232a40;
+  --inset:inset 4px 4px 9px #13161f, inset -4px -4px 9px #232a40;
+  --input-bg:#1b1f2e; --input-shadow:var(--inset);
+  --tab-active-bg:var(--accent-grad);
+  --c1:#ff4d6d; --c2:#4d7cff; --c3:#00d4aa; --c4:#a78bfa; --c5:#fbbf24; --c6:#38bdf8;
+}
+[data-theme="neon"]{
+  --bg:#120e20; --bg2:#160f28;
+  --card:#1c1430; --card2:#241836;
+  --text:#f3eefe; --muted:#9a8cc0; --line:#33264d;
+  --accent:#b14dff; --accent2:#ff4dd2; --accent-grad:linear-gradient(135deg,#b14dff,#ff4dd2);
+  --shadow:0 8px 30px rgba(177,77,255,.18), 0 0 0 1px #2c2046;
+  --shadow-sm:0 4px 16px rgba(177,77,255,.15), 0 0 0 1px #2c2046;
+  --inset:inset 0 0 0 1px #33264d;
+  --input-bg:#160f28; --input-shadow:inset 0 0 0 1px #33264d;
+  --tab-active-bg:var(--accent-grad);
+  --c1:#b14dff; --c2:#ff4dd2; --c3:#4dd2ff; --c4:#ff7ab8; --c5:#7c4dff; --c6:#c77dff;
+}
+[data-theme="finance"]{
+  --bg:#0d111c; --bg2:#0d111c;
+  --card:#161b2b; --card2:#1c2233;
+  --text:#eaf0fb; --muted:#7e899f; --line:#252d40;
+  --accent:#2dd4bf; --accent2:#38bdf8; --accent-grad:linear-gradient(135deg,#2dd4bf,#38bdf8);
+  --shadow:0 6px 24px rgba(0,0,0,.45), 0 0 0 1px #222a3d;
+  --shadow-sm:0 3px 14px rgba(0,0,0,.4), 0 0 0 1px #222a3d;
+  --inset:inset 0 0 0 1px #2b3450;
+  --input-bg:#11162270; --input-shadow:inset 0 0 0 1px #2b3450;
+  --tab-active-bg:var(--accent-grad);
+  --c1:#2dd4bf; --c2:#38bdf8; --c3:#818cf8; --c4:#34d399; --c5:#fbbf24; --c6:#60a5fa;
+}
+[data-theme="light"]{
+  --bg:#eceef5; --bg2:#eceef5;
+  --card:#ffffff; --card2:#f6f7fc;
+  --text:#1e2235; --muted:#8189a3; --line:#e6e8f2;
+  --accent:#7c3aed; --accent2:#ec4899; --accent-grad:linear-gradient(135deg,#7c3aed,#a855f7);
+  --shadow:0 10px 30px rgba(60,50,120,.10), 0 0 0 1px #e6e8f2;
+  --shadow-sm:0 4px 16px rgba(60,50,120,.09);
+  --inset:inset 0 0 0 1px #e6e8f2;
+  --input-bg:#f4f5fb; --input-shadow:inset 0 0 0 1px #e6e8f2;
+  --tab-active-bg:var(--accent-grad);
+  --c1:#7c3aed; --c2:#ec4899; --c3:#3b82f6; --c4:#10b981; --c5:#f59e0b; --c6:#8b5cf6;
+}
+
+/* ============================================================ base */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:'Segoe UI',Roboto,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;overflow:hidden;
+  transition:background .35s, color .35s}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+::-webkit-scrollbar-track{background:transparent}
+
+.topbar{display:flex;align-items:center;gap:18px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.brand{font-size:17px;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;gap:9px;white-space:nowrap}
+.brand .logo{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:var(--accent-grad);color:#fff;font-size:14px;box-shadow:var(--shadow-sm)}
+.brand b{font-weight:800;background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.tabs{display:flex;gap:8px}
+.tab{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;cursor:pointer;color:var(--muted);font-weight:700;border:none;background:transparent;font-size:13.5px;transition:.2s}
+.tab.active{color:#fff;background:var(--tab-active-bg);box-shadow:var(--shadow-sm)}
+[data-theme="light"] .tab.active{color:#fff}
+.tab:not(.active):hover{color:var(--text)}
+.badge{background:rgba(255,255,255,.18);border-radius:11px;padding:1px 8px;font-size:11px}
+.tab:not(.active) .badge{background:var(--card2);color:var(--muted)}
+.themebar{margin-left:auto;display:flex;gap:8px;align-items:center}
+.themebar .lbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-right:2px}
+.sw{width:26px;height:26px;border-radius:8px;cursor:pointer;border:2px solid transparent;padding:0;transition:.2s}
+.sw:hover{transform:translateY(-2px)}
+.sw.on{border-color:var(--text);transform:translateY(-2px)}
+.sw[data-theme="neumorphic"]{background:linear-gradient(135deg,#ff4d6d,#4d7cff)}
+.sw[data-theme="neon"]{background:linear-gradient(135deg,#b14dff,#ff4dd2)}
+.sw[data-theme="finance"]{background:linear-gradient(135deg,#2dd4bf,#38bdf8)}
+.sw[data-theme="light"]{background:linear-gradient(135deg,#7c3aed,#ec4899)}
+
+main{height:calc(100vh - 61px);overflow:auto}
+.page{display:none;padding:20px;max-width:1320px;margin:0 auto}
+.page.active{display:block;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* cards / inputs */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+label,.lbl2{display:block;font-size:11px;color:var(--muted);margin-bottom:7px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.lbl-acc{color:var(--accent)}
+textarea,input[type=text],input[type=number],select{width:100%;background:var(--input-bg);color:var(--text);border:none;border-radius:12px;padding:12px 13px;font-family:inherit;font-size:14px;box-shadow:var(--input-shadow);outline:none}
+textarea{min-height:320px;resize:vertical;line-height:1.55}
+select{appearance:none;cursor:pointer}
+
+/* settings layout */
+.grid{display:flex;gap:18px;align-items:flex-start}
+.col-left{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.col-right{flex:1;min-width:0}
+.panel{padding:20px}
+.panel h2{font-size:15px;margin:0 0 16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.row2{display:flex;gap:14px}.row2>div{flex:1}
+.sep{height:1px;background:var(--line);margin:18px 0}
+.radio,.check{display:flex;align-items:center;gap:9px;padding:6px 0;cursor:pointer;font-size:14px}
+.radio input,.check input{accent-color:var(--accent);width:16px;height:16px}
+.radios{display:flex;flex-direction:column}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:1px 16px}
+.hint{font-size:11px;color:var(--muted);margin-top:7px}
+
+/* threads slider */
+.slider-wrap{display:flex;align-items:center;gap:14px}
+input[type=range]{flex:1;-webkit-appearance:none;height:8px;border-radius:6px;background:var(--input-bg);box-shadow:var(--input-shadow)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent-grad);cursor:pointer;box-shadow:var(--shadow-sm)}
+.threadval{min-width:118px;text-align:right;font-weight:800;font-size:15px}
+.risk{font-size:11px;font-weight:700}
+.risk.g{color:#22c55e}.risk.y{color:#eab308}.risk.r{color:#ef4444}
+
+.start{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:18px;background:var(--accent-grad);color:#fff;border:none;border-radius:14px;padding:17px;font-size:17px;font-weight:800;cursor:pointer;letter-spacing:.4px;box-shadow:var(--shadow);transition:.15s}
+.start:hover{transform:translateY(-2px)}
+.start.stop{background:var(--card2);color:var(--text);box-shadow:var(--shadow-sm)}
+.pbar{height:6px;background:var(--input-bg);border-radius:5px;overflow:hidden;margin-top:14px;box-shadow:var(--input-shadow)}
+.pbar>i{display:block;height:100%;width:0;background:var(--accent-grad);transition:width .3s}
+
+/* ============================================================ dashboard */
+.dash{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.metric{padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.metric .mlabel{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.metric .mval{font-size:30px;font-weight:800;line-height:1}
+.metric .msub{font-size:12px;color:var(--muted)}
+.metric .mval.acc{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.charts{display:grid;grid-template-columns:1.1fr 1.4fr 1.2fr;gap:16px;margin-bottom:16px}
+.chart{padding:18px}
+.chart h3{margin:0 0 4px;font-size:13px;font-weight:800}
+.chart .csub{font-size:11px;color:var(--muted);margin-bottom:10px}
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.legend{display:flex;flex-direction:column;gap:7px;font-size:12px}
+.legend .li{display:flex;align-items:center;gap:8px;color:var(--muted)}
+.legend .dot{width:11px;height:11px;border-radius:3px;flex:none}
+.legend b{color:var(--text);font-weight:700}
+svg .seg{transition:opacity .15s;cursor:default}
+svg .seg:hover{opacity:.75}
+.bar{transition:.2s}
+.bar:hover{opacity:.8}
+.scatter-dot{transition:.15s;cursor:default}
+.scatter-dot:hover{r:7}
+.gem{filter:drop-shadow(0 0 5px var(--accent))}
+.tip{position:fixed;pointer-events:none;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;box-shadow:var(--shadow-sm);opacity:0;transition:opacity .12s;z-index:50;white-space:nowrap}
+
+/* results table */
+.res-tools{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.res-tools input{max-width:300px}
+.btn{background:var(--card2);color:var(--text);border:none;border-radius:11px;padding:11px 15px;font-weight:700;cursor:pointer;font-size:13px;box-shadow:var(--shadow-sm);transition:.15s}
+.btn:hover{transform:translateY(-2px)}
+.spacer{flex:1}
+.tablewrap{border-radius:var(--radius);overflow:auto;max-height:calc(100vh - 230px);box-shadow:var(--shadow);background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{position:sticky;top:0;background:var(--card2);cursor:pointer;user-select:none;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);z-index:2}
+th:hover{color:var(--text)}
+tr.vid:hover td{background:var(--card2)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.title{max-width:420px}
+td.title a{color:var(--text);text-decoration:none;font-weight:600}
+td.title a:hover{color:var(--accent2)}
+td.q{color:var(--muted);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.gemcell{color:var(--accent);font-weight:800}
+.thumb{width:88px;height:50px;border-radius:7px;object-fit:cover;background:#000;box-shadow:var(--shadow-sm)}
+.ch{color:var(--muted);font-size:12px}
+.footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);padding:10px 4px 0}
+.footer .err{color:#f59e0b}
+.empty{padding:46px;text-align:center;color:var(--muted)}
+
+/* ---- Telegram кнопка (привертає увагу) ---- */
+.tg-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:22px;background:linear-gradient(135deg,#2AABEE,#229ED9);color:#fff;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap;box-shadow:0 0 0 0 rgba(42,171,238,.6);animation:tgpulse 2.2s infinite}
+.tg-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.tg-btn .tgi{font-size:15px;line-height:1}
+@keyframes tgpulse{0%{box-shadow:0 0 0 0 rgba(42,171,238,.55)}70%{box-shadow:0 0 0 13px rgba(42,171,238,0)}100%{box-shadow:0 0 0 0 rgba(42,171,238,0)}}
+
+/* ---- кнопка довідки ---- */
+.help-btn{background:var(--card2);color:var(--text);border:none;border-radius:20px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:var(--shadow-sm)}
+.help-btn:hover{transform:translateY(-1px)}
+
+/* ---- довідка (drawer справа) ---- */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.drawer-overlay.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:460px;max-width:94vw;background:var(--bg);box-shadow:-14px 0 50px rgba(0,0,0,.45);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:61;overflow-y:auto;padding:24px 26px}
+.drawer.open{transform:none}
+.drawer h2{margin:0 0 2px;font-size:19px}
+.drawer .sub{color:var(--muted);font-size:12px;margin-bottom:8px}
+.drawer .dx{position:absolute;top:18px;right:20px;cursor:pointer;font-size:24px;line-height:1;color:var(--muted);background:none;border:none}
+.drawer h3{font-size:14px;margin:20px 0 6px;color:var(--accent);display:flex;align-items:center;gap:7px}
+.drawer p,.drawer li{font-size:13px;line-height:1.62;color:var(--text)}
+.drawer ul{padding-left:18px;margin:6px 0}
+.drawer .muted{color:var(--muted)}
+.drawer .warn{border-left:3px solid var(--c5);padding:2px 0 2px 11px;margin:8px 0}
+.drawer .good{border-left:3px solid var(--c3);padding:2px 0 2px 11px;margin:8px 0}
+.drawer b.k{color:var(--accent2)}
+
+/* ---- живий лог ---- */
+.logpanel{margin-bottom:16px;overflow:hidden}
+.loghead{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;cursor:pointer;font-weight:800;font-size:13px}
+.loghead .toggle{color:var(--muted);font-weight:600;font-size:12px}
+.logbox{max-height:180px;overflow-y:auto;padding:4px 18px 14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.75}
+.logbox.collapsed{display:none}
+.logline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logline .t{color:var(--muted);margin-right:8px}
+.logline.ok .m{color:#4ade80}
+.logline.warn .m{color:#fbbf24}
+.logline.run .m{color:var(--accent2)}
+.logline.done .m{color:var(--accent);font-weight:700}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="logo">▶</span> YT NICHE <b>PARSER</b></div>
+  <a class="tg-btn" href="https://t.me/+e_g6IwDlVhg4OGJi" target="_blank" rel="noopener" title="Наш Telegram-канал"><span class="tgi">✈</span> Наш канал</a>
+  <nav class="tabs">
+    <button class="tab active" data-tab="settings">⚙ Налаштування</button>
+    <button class="tab" data-tab="results">📊 Дашборд <span class="badge" id="resBadge">0</span></button>
+  </nav>
+  <div class="themebar">
+    <button class="help-btn" id="helpBtn">❓ Довідка</button>
+    <span class="lbl">Тема</span>
+    <button class="sw on" data-theme="neumorphic" title="Neumorphic"></button>
+    <button class="sw" data-theme="neon" title="Neon Purple"></button>
+    <button class="sw" data-theme="finance" title="Finance Dark"></button>
+    <button class="sw" data-theme="light" title="Light Pro"></button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ ВКЛАДКА: НАЛАШТУВАННЯ ============ -->
+  <section class="page active" id="page-settings">
+    <div class="grid">
+      <div class="col-left">
+        <label>Пошукові запити (кожен з нового рядка)</label>
+        <textarea id="queries" class="card" placeholder="космос для сну&#10;що таке вода&#10;історія Риму&#10;..."></textarea>
+        <div class="hint" id="qCount">0 запитів</div>
+        <div class="card panel">
+          <label>⚡ Паралельність (потоків одночасно)</label>
+          <div class="slider-wrap">
+            <input type="range" id="threads" min="1" max="8" value="3" />
+            <span class="threadval"><span id="threadN">3</span> <span class="risk g" id="risk">безпечно</span></span>
+          </div>
+          <div class="hint">Більше потоків = швидше, але вищий ризик тимчасового блоку YouTube. 1–3 безпечно, 6–8 — на свій ризик.</div>
+          <div class="row2" style="margin-top:14px">
+            <div><label>Ліміт відео на запит</label><input type="number" id="maxResults" min="1" max="500" value="30" /></div>
+            <div><label>Пауза, мс (для 1 потоку)</label><input type="number" id="delayMs" min="0" max="30000" step="500" value="4000" /></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-right">
+        <div class="card panel">
+          <h2>🎯 ФІЛЬТРИ НІШІ</h2>
+          <div class="row2">
+            <div><label class="lbl-acc">Макс. підписників</label><input type="number" id="maxSubs" min="0" value="0" placeholder="0 = будь-яка" /></div>
+            <div><label class="lbl-acc">Мін. переглядів</label><input type="number" id="minViews" min="0" value="1000" /></div>
+          </div>
+          <div class="sep"></div>
+          <label>Тип контенту</label>
+          <div class="radios" style="flex-direction:row;gap:22px">
+            <label class="radio"><input type="radio" name="ct" value="video" checked> 🎬 Відео (без Shorts)</label>
+            <label class="radio"><input type="radio" name="ct" value="shorts"> 📱 Shorts</label>
+          </div>
+          <div class="sep"></div>
+          <label>Тривалість</label>
+          <div class="radios">
+            <label class="radio"><input type="radio" name="dur" value="0" checked> Будь-яка</label>
+            <label class="radio"><input type="radio" name="dur" value="1"> Короткі (&lt; 4 хв)</label>
+            <label class="radio"><input type="radio" name="dur" value="3"> Середні (4–20 хв)</label>
+            <label class="radio"><input type="radio" name="dur" value="2"> Довгі (&gt; 20 хв)</label>
+          </div>
+          <div class="sep"></div>
+          <div class="row2">
+            <div><label>Дата завантаження</label>
+              <select id="date"><option value="0">Будь-коли</option><option value="1">Остання година</option><option value="2">Сьогодні</option><option value="3">Цього тижня</option><option value="4">Цього місяця</option><option value="5">Цього року</option></select>
+            </div>
+            <div><label>Упорядкування</label>
+              <select id="sort"><option value="0">Відповідність</option><option value="2">Дата завантаження</option><option value="3">Перегляди</option><option value="1">Рейтинг</option></select>
+            </div>
+          </div>
+          <div class="sep"></div>
+          <label>Характеристики</label>
+          <div class="checks" id="features">
+            <label class="check"><input type="checkbox" value="hd"> HD</label>
+            <label class="check"><input type="checkbox" value="is4k"> 4K</label>
+            <label class="check"><input type="checkbox" value="hdr"> HDR</label>
+            <label class="check"><input type="checkbox" value="subtitles"> Субтитри / CC</label>
+            <label class="check"><input type="checkbox" value="creative_commons"> Creative Commons</label>
+            <label class="check"><input type="checkbox" value="live"> У прямому ефірі</label>
+            <label class="check"><input type="checkbox" value="is360"> 360°</label>
+            <label class="check"><input type="checkbox" value="vr180"> VR180</label>
+            <label class="check"><input type="checkbox" value="is3d"> 3D</label>
+            <label class="check"><input type="checkbox" value="location"> Місцезнаходження</label>
+            <label class="check"><input type="checkbox" value="purchased"> Придбано</label>
+          </div>
+        </div>
+        <button class="start" id="runBtn">ПОЧАТИ ПАРСИНГ 🚀</button>
+        <button class="start stop" id="stopBtn" style="display:none">■ ЗУПИНИТИ</button>
+        <div class="pbar"><i id="bar"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ВКЛАДКА: ДАШБОРД / РЕЗУЛЬТАТИ ============ -->
+  <section class="page" id="page-results">
+    <div class="dash" id="metrics"></div>
+    <div class="charts">
+      <div class="card chart"><h3>Розподіл по запитах</h3><div class="csub">скільки відео дав кожен запит</div><div class="donut-wrap"><div id="donut"></div><div class="legend" id="donutLegend"></div></div></div>
+      <div class="card chart"><h3>Топ каналів за переглядами</h3><div class="csub">сумарні перегляди по каналу</div><div id="barchart"></div></div>
+      <div class="card chart"><h3>💎 Самородки: підписники ↔ перегляди</h3><div class="csub">ліворуч-вгорі = мало підписників, багато переглядів</div><div id="scatter"></div></div>
+    </div>
+
+    <div class="card logpanel" id="logpanel">
+      <div class="loghead" id="logHead">📜 Живий лог пошуку <span class="toggle" id="logToggle">згорнути ▲</span></div>
+      <div class="logbox" id="logbox"></div>
+    </div>
+
+    <div class="res-tools">
+      <input type="text" id="filterText" placeholder="🔎 фільтр по заголовку / каналу..." class="card" />
+      <span class="spacer"></span>
+      <button class="btn" id="csvBtn">💾 Зберегти CSV</button>
+      <button class="btn" id="txtBtn">📋 Зберегти TXT</button>
+    </div>
+    <div class="card tablewrap">
+      <table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table>
+      <div class="empty" id="empty">Немає даних. Запусти парсинг на вкладці «Налаштування».</div>
+    </div>
+    <div class="footer">
+      <span id="status"></span>
+      <span>Клік по заголовку — сортування &nbsp;|&nbsp; Подвійний клік по рядку — відкрити відео</span>
+    </div>
+  </section>
+</main>
+
+<div class="tip" id="tip"></div>
+
+<!-- ============ ДОВІДКА (drawer справа) ============ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="drawer" id="drawer">
+  <button class="dx" id="drawerClose">×</button>
+  <h2>❓ Довідка</h2>
+  <div class="sub">як це працює, ризики та поради</div>
+
+  <h3>🔍 Як це працює</h3>
+  <p>Програма <b>НЕ</b> використовує твій акаунт і <b>НЕ</b> ходить через твій особистий браузер.
+  Браузер (Chrome/Edge) тут лише <b class="k">малює це вікно</b> — не більше.</p>
+  <p>Самі запити до YouTube робить <b class="k">Python</b> — звичайними анонімними запитами,
+  як відвідувач у режимі <b>інкогніто</b>. Без логіну, без кукі, без твоєї історії.</p>
+  <p class="muted">Дані беруться з публічної сторінки пошуку YouTube (вшитий у неї JSON) +
+  публічного внутрішнього API для «гортання» далі за першу сторінку.</p>
+
+  <h3>⏳ Чи злетить з часом?</h3>
+  <p>Не через акаунт — його нема, тож нічого не «протухає» (на відміну від проксі до AI).</p>
+  <p>Єдине, що може зламати — якщо <b>YouTube змінить структуру своєї сторінки</b>.
+  Тоді треба буде підправити парсер. Поки формат стабільний — працює.</p>
+  <div class="warn"><b>Тимчасовий ризик:</b> забагато запитів з одного IP → YouTube покаже
+  капчу/тимчасовий блок. Це <b>минає</b> (не бан акаунта). Лікується паузою, меншою к-стю
+  потоків або зміною IP/VPN.</div>
+
+  <h3>🎯 Фільтри ніші</h3>
+  <ul>
+    <li><b>Макс. підписників</b> — показати лише <b>малі</b> канали (недооцінені ніші).</li>
+    <li><b>Мін. переглядів</b> — відкинути «мертві» відео.</li>
+    <li><b>V/S (💎)</b> — перегляди ÷ підписники. <b>≥2× на малому каналі = самородок</b>
+      (відео завірусилось відносно розміру каналу — головний сигнал ніші).</li>
+    <li><b>Тип/Тривалість/Дата/Характеристики</b> — те саме, що фільтри пошуку на самому YouTube.</li>
+  </ul>
+
+  <h3>⚡ Потоки (швидкість ↔ ризик)</h3>
+  <p><b>1–3</b> — безпечно. <b>4–5</b> — помірний ризик. <b>6–8</b> — швидко, але вищий шанс
+  тимчасового блоку. Для 100+ запитів постав <b>2–3</b> і йди пити каву.</p>
+
+  <h3>💡 Поради по налаштуванню</h3>
+  <ul>
+    <li>Дата «<b>цього тижня</b>» + сортування «<b>перегляди</b>» → свіжі вірусні теми.</li>
+    <li>Менший «<b>Ліміт на запит</b>» (20–30) = швидше і менше навантаження.</li>
+    <li>Сортуй таблицю по колонці <b>V/S</b> → одразу видно 💎 самородки.</li>
+    <li>Експорт <b>CSV</b> → відкрий в Excel/Sheets для глибшого аналізу.</li>
+    <li>Для <b>Shorts</b> підписники не показуються (їх нема у видачі Shorts).</li>
+  </ul>
+
+  <div class="good">Вікно закриється <b>само лише коли ти його закриєш</b>. Простій (навіть довгий)
+  його не закриває.</div>
+</aside>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = n => n==null ? '—' : n.toLocaleString('uk-UA');
+const fmtShort = n => { n=n||0; if(n>=1e9)return (n/1e9).toFixed(1)+'B'; if(n>=1e6)return (n/1e6).toFixed(1)+'M'; if(n>=1e3)return (n/1e3).toFixed(1)+'K'; return ''+n; };
+
+/* ---------- ТЕМИ ---------- */
+function setTheme(name){
+  document.documentElement.dataset.theme = name;
+  document.querySelectorAll('.sw').forEach(b=>b.classList.toggle('on', b.dataset.theme===name));
+  try{ localStorage.setItem('ytniche_theme', name); }catch(e){}
+}
+document.querySelectorAll('.sw').forEach(b=> b.onclick = ()=> setTheme(b.dataset.theme));
+(function(){ let t='neumorphic'; try{ t=localStorage.getItem('ytniche_theme')||'neumorphic'; }catch(e){} setTheme(t); })();
+
+/* ---------- ВКЛАДКИ ---------- */
+document.querySelectorAll('.tab').forEach(t=> t.onclick = ()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active'); $('page-'+t.dataset.tab).classList.add('active');
+});
+const showTab = n => document.querySelector(`.tab[data-tab="${n}"]`).click();
+
+/* ---------- ЛІЧИЛЬНИК / СЛАЙДЕР ---------- */
+$('queries').addEventListener('input', ()=>{
+  const n = $('queries').value.split('\n').map(s=>s.trim()).filter(Boolean).length;
+  $('qCount').textContent = n + ' запит' + (n===1?'':(n>=2&&n<=4?'и':'ів'));
+});
+$('threads').addEventListener('input', ()=>{
+  const v = +$('threads').value; $('threadN').textContent = v;
+  const r = $('risk');
+  if(v<=3){ r.className='risk g'; r.textContent='безпечно'; }
+  else if(v<=5){ r.className='risk y'; r.textContent='помірний ризик'; }
+  else { r.className='risk r'; r.textContent='на свій ризик'; }
+});
+
+/* ---------- ТАБЛИЦЯ ---------- */
+const COLS=[
+  {k:'_thumb',l:'',s:false},{k:'query',l:'Запит',s:true},{k:'title',l:'Назва відео',s:true},
+  {k:'channel',l:'Канал',s:true},{k:'subs',l:'Підписники',s:true,n:true},
+  {k:'views',l:'Перегляди',s:true,n:true},{k:'ratio',l:'V/S',s:true,n:true},
+  {k:'ageHours',l:'Дата',s:true,n:true},{k:'durationSec',l:'Трив.',s:true,n:true},
+];
+let ROWS=[], sortKey='views', sortDir=-1;
+function renderHead(){
+  $('head').innerHTML = COLS.map(c=>{
+    if(!c.s) return '<th></th>';
+    const a = sortKey===c.k ? (sortDir<0?' ▼':' ▲') : '';
+    return `<th data-k="${c.k}">${c.l}${a}</th>`;
+  }).join('');
+  $('head').querySelectorAll('th[data-k]').forEach(th=> th.onclick=()=>{
+    const k=th.dataset.k;
+    if(sortKey===k) sortDir*=-1; else { sortKey=k; sortDir=(k==='title'||k==='channel'||k==='query')?1:-1; }
+    renderHead(); renderBody();
+  });
+}
+function visibleRows(){
+  const ft=$('filterText').value.trim().toLowerCase();
+  let rows = ROWS.filter(r=> !ft || (r.title+' '+r.channel+' '+r.query).toLowerCase().includes(ft));
+  rows.sort((a,b)=>{
+    let x=a[sortKey], y=b[sortKey];
+    if(typeof x==='string'||typeof y==='string'){x=(x||'').toLowerCase();y=(y||'').toLowerCase();return x<y?-sortDir:x>y?sortDir:0;}
+    x=x==null?-1:x; y=y==null?-1:y; return (x-y)*sortDir;
+  });
+  return rows;
+}
+function gemRatio(r){ return (r.subs && r.subs>0 && r.views!=null) ? r.views/r.subs : null; }
+function renderBody(){
+  const rows=visibleRows();
+  $('empty').style.display = rows.length?'none':'block';
+  $('body').innerHTML = rows.map(r=>{
+    const ratio = gemRatio(r);
+    const isGem = ratio!=null && r.subs<20000 && ratio>=2;
+    return `<tr class="vid" data-url="${esc(r.url)}">
+      <td><img class="thumb" loading="lazy" src="${r.thumbnail}" onerror="this.style.visibility='hidden'"/></td>
+      <td class="q" title="${esc(r.query)}">${esc(r.query)}</td>
+      <td class="title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></td>
+      <td class="ch">${esc(r.channel||'—')}</td>
+      <td class="num">${r.subs==null?'—':fmt(r.subs)}</td>
+      <td class="num">${fmt(r.views)}</td>
+      <td class="num ${isGem?'gemcell':''}">${ratio==null?'—':(isGem?'💎 ':'')+ratio.toFixed(1)+'×'}</td>
+      <td class="num">${esc(r.publishedText||'—')}</td>
+      <td class="num">${esc(r.durationText||'—')}</td>
+    </tr>`;}).join('');
+  $('body').querySelectorAll('tr.vid').forEach(tr=> tr.ondblclick=()=>window.open(tr.dataset.url,'_blank'));
+  $('resBadge').textContent = ROWS.length;
+}
+$('filterText').addEventListener('input', renderBody);
+
+/* ---------- ДАШБОРД: метрики + графіки ---------- */
+function median(arr){ if(!arr.length)return 0; const s=[...arr].sort((a,b)=>a-b); const m=s.length>>1; return s.length%2?s[m]:Math.round((s[m-1]+s[m])/2); }
+function renderDash(){
+  const vs = ROWS.map(r=>r.views||0);
+  const channels = new Set(ROWS.map(r=>r.channel).filter(Boolean));
+  const gems = ROWS.filter(r=>{const x=gemRatio(r);return x!=null&&r.subs<20000&&x>=2;});
+  const metrics=[
+    {l:'Усього відео', v:fmt(ROWS.length)},
+    {l:'Сумарні перегляди', v:fmtShort(vs.reduce((a,b)=>a+b,0))||'0', acc:true},
+    {l:'Унікальних каналів', v:fmt(channels.size)},
+    {l:'💎 Самородків', v:fmt(gems.length), sub:'мало підп., багато переглядів', acc:true},
+  ];
+  $('metrics').innerHTML = metrics.map(m=>`<div class="card metric">
+    <span class="mlabel">${m.l}</span><span class="mval ${m.acc?'acc':''}">${m.v}</span>
+    <span class="msub">${m.sub|| (m.l==='Сумарні перегляди'?'медіана '+fmtShort(median(vs)):'&nbsp;')}</span></div>`).join('');
+  renderDonut(); renderBar(); renderScatter();
+}
+
+function renderDonut(){
+  // розподіл відео по запитах (топ 6 + інші)
+  const byQ={};
+  ROWS.forEach(r=> byQ[r.query]=(byQ[r.query]||0)+1);
+  let arr=Object.entries(byQ).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+  let top=arr.slice(0,6); const rest=arr.slice(6).reduce((a,b)=>a+b.v,0);
+  if(rest) top.push({k:'інші',v:rest});
+  const total=top.reduce((a,b)=>a+b.v,0)||1;
+  const R=52,C=2*Math.PI*R; let off=0;
+  const segs=top.map((s,i)=>{
+    const len=s.v/total*C; const el=`<circle class="seg" r="${R}" cx="70" cy="70" fill="none" stroke="var(--c${i%6+1})" stroke-width="18" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" data-tip="${esc(s.k)}: ${s.v}"></circle>`;
+    off+=len; return el;
+  }).join('');
+  $('donut').innerHTML = `<svg width="140" height="140" style="transform:rotate(-90deg)">${segs}
+    <text x="70" y="70" transform="rotate(90 70 70)" text-anchor="middle" dy="-2" fill="var(--text)" font-size="22" font-weight="800">${ROWS.length}</text>
+    <text x="70" y="70" transform="rotate(90 70 70)" text-anchor="middle" dy="16" fill="var(--muted)" font-size="10">відео</text></svg>`;
+  $('donutLegend').innerHTML = top.map((s,i)=>`<div class="li"><span class="dot" style="background:var(--c${i%6+1})"></span><b>${esc(s.k.length>16?s.k.slice(0,16)+'…':s.k)}</b> · ${s.v}</div>`).join('');
+  bindTips('#donut');
+}
+
+function renderBar(){
+  const byCh={};
+  ROWS.forEach(r=>{ if(r.channel) byCh[r.channel]=(byCh[r.channel]||0)+(r.views||0); });
+  let arr=Object.entries(byCh).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v).slice(0,8);
+  const max=Math.max(1,...arr.map(a=>a.v));
+  const W=440,bh=22,gap=12,H=arr.length*(bh+gap)+6;
+  const bars=arr.map((a,i)=>{
+    const w=Math.max(3,a.v/max*(W-150)); const y=i*(bh+gap)+4;
+    return `<g>
+      <text x="0" y="${y+15}" fill="var(--muted)" font-size="11">${esc(a.k.length>16?a.k.slice(0,16)+'…':a.k)}</text>
+      <rect class="bar" x="118" y="${y}" width="${w}" height="${bh}" rx="6" fill="var(--c${i%6+1})" data-tip="${esc(a.k)}: ${a.v.toLocaleString('uk-UA')} переглядів"></rect>
+      <text x="${118+w+6}" y="${y+15}" fill="var(--text)" font-size="11" font-weight="700">${fmtShort(a.v)}</text></g>`;
+  }).join('');
+  $('barchart').innerHTML = arr.length?`<svg width="100%" viewBox="0 0 ${W} ${H}">${bars}</svg>`:'<div class="hint">нема даних</div>';
+  bindTips('#barchart');
+}
+
+function renderScatter(){
+  const pts=ROWS.filter(r=>r.subs!=null&&r.subs>0&&r.views!=null&&r.views>0);
+  const W=380,H=210,pad=34;
+  if(!pts.length){ $('scatter').innerHTML='<div class="hint">нема даних з підписниками (Shorts не мають)</div>'; return; }
+  const lx=v=>Math.log10(Math.max(1,v));
+  const xs=pts.map(p=>lx(p.subs)), ys=pts.map(p=>lx(p.views));
+  const xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+  const X=v=>pad+(lx(v)-xmin)/((xmax-xmin)||1)*(W-pad-12);
+  const Y=v=>H-pad-(lx(v)-ymin)/((ymax-ymin)||1)*(H-pad-12);
+  const dots=pts.map(p=>{
+    const isGem=p.subs<20000&&p.views/p.subs>=2;
+    return `<circle class="scatter-dot ${isGem?'gem':''}" r="${isGem?5:4}" cx="${X(p.subs).toFixed(1)}" cy="${Y(p.views).toFixed(1)}" fill="var(--c${isGem?1:2})" fill-opacity="${isGem?1:.6}" data-tip="${esc(p.title.slice(0,30))} · ${fmtShort(p.subs)} підп. · ${fmtShort(p.views)} перегл."></circle>`;
+  }).join('');
+  $('scatter').innerHTML=`<svg width="100%" viewBox="0 0 ${W} ${H}">
+    <line x1="${pad}" y1="${H-pad}" x2="${W-6}" y2="${H-pad}" stroke="var(--line)"/>
+    <line x1="${pad}" y1="6" x2="${pad}" y2="${H-pad}" stroke="var(--line)"/>
+    <text x="${W/2}" y="${H-6}" text-anchor="middle" fill="var(--muted)" font-size="10">підписники →</text>
+    <text x="10" y="${H/2}" transform="rotate(-90 10 ${H/2})" text-anchor="middle" fill="var(--muted)" font-size="10">перегляди →</text>
+    ${dots}</svg>`;
+  bindTips('#scatter');
+}
+
+/* тултіпи для графіків */
+function bindTips(sel){
+  const tip=$('tip');
+  document.querySelectorAll(sel+' [data-tip]').forEach(el=>{
+    el.onmousemove=e=>{ tip.textContent=el.dataset.tip; tip.style.opacity=1; tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY+12)+'px'; };
+    el.onmouseleave=()=>{ tip.style.opacity=0; };
+  });
+}
+
+/* ---------- ПОШУК (стрім) ---------- */
+let controller=null;
+$('runBtn').onclick=run;
+$('stopBtn').onclick=()=>{ if(controller) controller.abort(); };
+function gatherPayload(){
+  const queries=$('queries').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const features=[...document.querySelectorAll('#features input:checked')].map(i=>i.value);
+  return { queries, contentType:document.querySelector('input[name=ct]:checked').value,
+    duration:+document.querySelector('input[name=dur]:checked').value, date:+$('date').value,
+    sort:+$('sort').value, features, maxResults:+$('maxResults').value||30,
+    delayMs:+$('delayMs').value||0, minViews:+$('minViews').value||0,
+    maxSubs:+$('maxSubs').value||0, threads:+$('threads').value||1 };
+}
+async function run(){
+  const p=gatherPayload();
+  if(!p.queries.length){ $('status').textContent='Введи хоча б один запит.'; return; }
+  ROWS=[]; renderBody(); renderDash(); showTab('results');
+  clearLog(); expandLog();
+  setRunning(true); $('status').textContent='Старт...'; $('bar').style.width='0%';
+  controller=new AbortController();
+  try{
+    const resp=await fetch('/api/search',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify(p)});
+    const reader=resp.body.getReader(); const dec=new TextDecoder(); let buf='';
+    while(true){
+      const {value,done}=await reader.read(); if(done)break;
+      buf+=dec.decode(value,{stream:true}); let nl;
+      while((nl=buf.indexOf('\n'))>=0){ const line=buf.slice(0,nl); buf=buf.slice(nl+1); if(line.trim()) handleEvent(JSON.parse(line)); }
+    }
+  }catch(e){
+    $('status').innerHTML = e.name==='AbortError' ? '⏹ Зупинено.' : '<span class="err">Помилка: '+esc(e.message)+'</span>';
+  }finally{ setRunning(false); renderDash(); }
+}
+let TOTAL=0;
+function handleEvent(ev){
+  if(ev.type==='start'){ TOTAL=ev.total; $('status').textContent = `Запущено ${ev.total} запитів у ${ev.threads} пот.`; logLine('run',`▶ Старт: ${ev.total} запит(ів) у ${ev.threads} потік(ах)`); }
+  else if(ev.type==='progress'){ const done=ev.done||0; $('bar').style.width=Math.round(done/Math.max(1,TOTAL)*100)+'%'; $('status').textContent=`(${done}/${TOTAL}) ${ev.query}`; logLine('run',`→ обробка: «${ev.query}» (${done}/${TOTAL})`); }
+  else if(ev.type==='result'){
+    if(ev.error){ $('status').innerHTML=`<span class="err">⚠ «${esc(ev.query)}»: ${esc(ev.error)}</span>`; logLine('warn',`⚠ «${ev.query}»: ${ev.error}`); }
+    else { for(const v of ev.videos) ROWS.push(v); renderBody(); renderDash(); logLine('ok',`✓ «${ev.query}» — ${ev.count} відео (всього ${ROWS.length})`); }
+  } else if(ev.type==='done'){ $('status').textContent=`✓ Готово. Зібрано ${ROWS.length} відео.`; $('bar').style.width='100%'; renderDash(); logLine('done',`✓ Готово. Зібрано ${ROWS.length} відео.`); }
+}
+function setRunning(on){ $('runBtn').style.display=on?'none':'flex'; $('stopBtn').style.display=on?'flex':'none'; }
+
+/* ---------- ЕКСПОРТ ---------- */
+function download(name,text,mime){ const b=new Blob(['﻿'+text],{type:mime+';charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; a.click(); }
+$('csvBtn').onclick=()=>{
+  const rows=visibleRows(); if(!rows.length)return;
+  const head=['запит','назва','канал','підписники','перегляди','V/S','дата','тривалість','url','id'];
+  const keys=['query','title','channel','subs','views','ratio','publishedText','durationText','url','id'];
+  const cell=v=>{ if(v==null)return''; const s=String(v); return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+  const csv=[head.join(',')].concat(rows.map(r=>{ r.ratio=gemRatio(r)?gemRatio(r).toFixed(1):''; return keys.map(k=>cell(r[k])).join(','); })).join('\r\n');
+  download('youtube-nishi.csv',csv,'text/csv');
+};
+$('txtBtn').onclick=()=>{
+  const rows=visibleRows(); if(!rows.length)return;
+  const lines=rows.map(r=>{const x=gemRatio(r);return [r.query,r.title,r.channel||'—','підп:'+(r.subs==null?'—':r.subs),'перегл:'+(r.views==null?'—':r.views),'V/S:'+(x?x.toFixed(1)+'×':'—'),r.publishedText||'—',r.durationText||'—',r.url].join('  |  ');});
+  download('youtube-nishi.txt',lines.join('\r\n'),'text/plain');
+};
+
+renderHead(); renderDash();
+
+/* ---- живий лог ---- */
+function logLine(level,msg){
+  const box=$('logbox'); const d=new Date();
+  const t=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+  const div=document.createElement('div'); div.className='logline '+level;
+  div.innerHTML=`<span class="t">${t}</span><span class="m">${esc(msg)}</span>`;
+  box.appendChild(div);
+  while(box.childNodes.length>400) box.removeChild(box.firstChild);
+  box.scrollTop=box.scrollHeight;
+}
+function clearLog(){ $('logbox').innerHTML=''; }
+function expandLog(){ $('logbox').classList.remove('collapsed'); $('logToggle').textContent='згорнути ▲'; }
+$('logHead').onclick=()=>{ const c=$('logbox').classList.toggle('collapsed'); $('logToggle').textContent=c?'розгорнути ▼':'згорнути ▲'; };
+
+/* ---- довідка (drawer) ---- */
+function openHelp(o){ $('drawer').classList.toggle('open',o); $('drawerOverlay').classList.toggle('open',o); }
+$('helpBtn').onclick=()=>openHelp(true);
+$('drawerClose').onclick=()=>openHelp(false);
+$('drawerOverlay').onclick=()=>openHelp(false);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') openHelp(false); });
+
+/* ---- пульс серверу: тримає вікно живим; реальне закриття -> миттєвий сигнал ---- */
+const ping=()=>fetch('/api/ping').catch(()=>{}); ping(); setInterval(ping,8000);
+function sayBye(){ try{ navigator.sendBeacon('/api/bye'); }catch(e){ try{ fetch('/api/bye',{method:'POST',keepalive:true}); }catch(_){} } }
+window.addEventListener('pagehide', sayBye);
+window.addEventListener('beforeunload', sayBye);
+</script>
+</body>
+</html>
