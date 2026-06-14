@@ -1,27 +1,46 @@
-# YouTube Niche Parser Pro V3
+<p align="center">
+  <img src="banner.png" alt="YouTube Niche Parser Pro V3" width="100%">
+</p>
 
-Парсер ніш YouTube без API. Шукає по списку запитів, застосовує фільтри і будує
-дашборд: перегляди, підписники, тривалість, графіки і «самородки» — малі канали
-з вірусними відео.
+<h1 align="center">YouTube Niche Parser Pro V3</h1>
 
-## 📥 Завантажити готовий застосунок для macOS
+<p align="center">
+  Парсер ніш YouTube <b>без API</b>. Вставив запити — отримав дашборд:<br>
+  перегляди · підписники · тривалість · графіки · 💎 самородки.
+</p>
 
-➡️ **[Останній .dmg тут](../../releases/latest)** — завантаж, відкрий, перетягни в Applications.
+---
 
-> Перший запуск: правий клік на застосунку → «Відкрити» → «Відкрити»
-> (бо застосунок непідписаний — це нормально).
-> Для вікна-додатка потрібен Chrome або Edge (лише Safari → відкриється вкладкою).
+## 📥 Завантажити
 
-## 🛠 Як збирається .dmg
+| Система | Файл | Що робити |
+|---|---|---|
+| 🪟 **Windows** | **[⬇️ Завантажити .zip](../../releases/latest/download/YouTube-Niche-Parser-Windows.zip)** | Розпакуй → `START.bat`. Python усередині. |
+| 🍎 **Mac (готове)** | **[⬇️ Завантажити .dmg](../../releases/latest/download/YouTube-Niche-Parser.dmg)** | Відкрий → перетягни в Applications. Universal. |
+| 🍎 **Mac (вихідники)** | **[⬇️ Завантажити .zip](../../releases/latest/download/YouTube-Niche-Parser-Mac.zip)** | `START.command` (треба Python) або `build_mac.sh`. |
 
-Автоматично через **GitHub Actions** на macOS-раннері (файл
-[`.github/workflows/build-mac.yml`](.github/workflows/build-mac.yml)):
-PyInstaller пакує застосунок + Python у `.app` (**universal2** — Intel і Apple
-Silicon), далі `hdiutil` робить `.dmg`, і він публікується в Releases.
+📖 Інструкція — всередині кожного архіву (файл **«ЯК ЗАПУСТИТИ.txt»**).
 
-**Перезібрати вручну:** вкладка **Actions** → *Build macOS .dmg* → **Run workflow**.
+> **Mac, перший запуск:** правий клік на проzі → «Відкрити» → «Відкрити» (бо непідписаний — це нормально).
 
-## 💻 Windows
+---
 
-Для Windows збірка не потрібна — там використовується портативний Python у комплекті
-(окремий архів з `START.bat`).
+## ✨ Можливості
+
+- 🎯 Фільтри ніші: макс. підписників, мін. переглядів, тип / тривалість / дата / характеристики
+- 💎 **V/S** (перегляди ÷ підписники) — одразу видно самородки (малі канали з вірусними відео)
+- 📊 Дашборд з графіками наживо + 📜 живий лог пошуку
+- 🎨 4 теми оформлення · ⚡ багатопоточний пошук · 💾 експорт CSV / TXT
+
+<p align="center"><img src="dashboard.png" alt="Дашборд" width="85%"></p>
+
+## 🔒 Як працює
+
+НЕ використовує твій акаунт і НЕ лізе в браузер. Робить **анонімні** запити до YouTube
+(як відвідувач в інкогніто) — без логіну, без кукі. Браузер потрібен лише щоб намалювати вікно.
+
+## 🛠 Збірка macOS .dmg
+
+Автоматична через **GitHub Actions** ([`.github/workflows/build-mac.yml`](.github/workflows/build-mac.yml)):
+PyInstaller пакує застосунок + universal2 Python у `.app`, `hdiutil` робить `.dmg`, він публікується в Releases.
+Перезібрати: вкладка **Actions → Build macOS .dmg → Run workflow**.

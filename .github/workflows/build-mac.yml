@@ -54,7 +54,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mac-latest
-          name: "YouTube Niche Parser — macOS"
-          body: "Самодостатній застосунок для macOS (.dmg). Universal: Intel + Apple Silicon. Завантаж і запускай."
+          name: "YouTube Niche Parser — Завантажити (Windows + Mac)"
+          body: |
+            **Парсер ніш YouTube без API.**
+
+            📥 Завантаж під свою систему:
+            - 🪟 **Windows** — `YouTube-Niche-Parser-Windows.zip` (розпакуй → `START.bat`, Python усередині)
+            - 🍎 **Mac готове** — `YouTube-Niche-Parser.dmg` (universal; 1-й запуск: правий клік → Відкрити)
+            - 🍎 **Mac вихідники** — `YouTube-Niche-Parser-Mac.zip` (`START.command` або `build_mac.sh`)
+
+            📖 Інструкція — всередині кожного архіву (файл «ЯК ЗАПУСТИТИ.txt»).
           files: YouTube-Niche-Parser.dmg
           make_latest: true
