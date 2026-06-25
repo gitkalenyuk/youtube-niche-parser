@@ -16,6 +16,7 @@ import urllib.request
 import urllib.parse
 import json
 import re
+import time
 import base64
 import ssl
 
@@ -329,19 +330,38 @@ def search_niche(query, sp='', max_results=20, mode='video', hl='uk', gl='UA'):
     url = 'https://www.youtube.com/results?search_query=' + urllib.parse.quote(query)
     if sp:
         url += '&sp=' + sp
-    try:
-        status, body = http_get(url, hl)
-    except Exception as e:
-        return [], f'Мережа: {e}'
-    if status != 200:
-        return [], f'HTTP {status}'
+
+    # Завантаження сторінки з кількома спробами (захист від тимчасового блоку/мережі).
+    body = None
+    last_err = None
+    for attempt in range(3):
+        try:
+            status, b = http_get(url, hl)
+        except Exception as e:
+            last_err = f'Мережа: {e}'
+            time.sleep(1.2 * (attempt + 1))
+            continue
+        if status == 429:
+            last_err = 'Тимчасовий блок (HTTP 429) — зачекай або зміни IP/VPN'
+            time.sleep(2.0 * (attempt + 1))
+            continue
+        if status != 200:
+            return [], f'HTTP {status}'
+        if extract_initial_data(b) is None:
+            # точні ознаки блоку (НЕ 'consent' — воно є на звичайних сторінках)
+            if re.search(r'captcha|recaptcha|unusual traffic|/sorry/', b, re.I):
+                last_err = 'Блок/капча від YouTube — зачекай або зміни IP/VPN'
+                time.sleep(2.0 * (attempt + 1))
+                continue
+            last_err = 'Не знайдено ytInitialData (можлива зміна формату YouTube)'
+            continue
+        body = b
+        break
+
+    if body is None:
+        return [], last_err or 'Не вдалося отримати сторінку'
 
     yd = extract_initial_data(body)
-    if not yd:
-        blocked = bool(re.search(r'consent|captcha|sorry', body, re.I)) and len(body) < 200000
-        return [], ('Можливий тимчасовий блок/капча (збільш паузу або зміни IP)'
-                    if blocked else 'Не знайдено ytInitialData')
-
     collector = collect_shorts if mode == 'short' else collect_videos
     items = []
     collector(yd, items)

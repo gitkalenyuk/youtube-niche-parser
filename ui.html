@@ -604,14 +604,38 @@ async function run(){
     $('status').innerHTML = e.name==='AbortError' ? '⏹ Зупинено.' : '<span class="err">Помилка: '+esc(e.message)+'</span>';
   }finally{ setRunning(false); renderDash(); }
 }
-let TOTAL=0;
+let TOTAL=0, STATS={empty:0,filtered:0,err:0};
 function handleEvent(ev){
-  if(ev.type==='start'){ TOTAL=ev.total; $('status').textContent = `Запущено ${ev.total} запитів у ${ev.threads} пот.`; logLine('run',`▶ Старт: ${ev.total} запит(ів) у ${ev.threads} потік(ах)`); }
+  if(ev.type==='start'){
+    TOTAL=ev.total; STATS={empty:0,filtered:0,err:0};
+    $('status').textContent = `Запущено ${ev.total} запитів у ${ev.threads} пот.`;
+    logLine('run',`▶ Старт: ${ev.total} запит(ів) у ${ev.threads} потік(ах)`);
+    if(ev.dateFilter) logLine('warn','ℹ Стоїть фільтр ДАТИ — він сильно звужує. Якщо буде багато порожніх, постав «Будь-коли».');
+  }
   else if(ev.type==='progress'){ const done=ev.done||0; $('bar').style.width=Math.round(done/Math.max(1,TOTAL)*100)+'%'; $('status').textContent=`(${done}/${TOTAL}) ${ev.query}`; logLine('run',`→ обробка: «${ev.query}» (${done}/${TOTAL})`); }
   else if(ev.type==='result'){
-    if(ev.error){ $('status').innerHTML=`<span class="err">⚠ «${esc(ev.query)}»: ${esc(ev.error)}</span>`; logLine('warn',`⚠ «${ev.query}»: ${ev.error}`); }
-    else { for(const v of ev.videos) ROWS.push(v); renderBody(); renderDash(); logLine('ok',`✓ «${ev.query}» — ${ev.count} відео (всього ${ROWS.length})`); }
-  } else if(ev.type==='done'){ $('status').textContent=`✓ Готово. Зібрано ${ROWS.length} відео.`; $('bar').style.width='100%'; renderDash(); logLine('done',`✓ Готово. Зібрано ${ROWS.length} відео.`); }
+    if(ev.error){ STATS.err++; $('status').innerHTML=`<span class="err">⚠ «${esc(ev.query)}»: ${esc(ev.error)}</span>`; logLine('warn',`⚠ «${ev.query}»: ${ev.error}`); }
+    else if(ev.count===0){
+      if(ev.reason==='filtered'){ STATS.filtered++; logLine('warn',`🔧 «${ev.query}»: знайдено ${ev.raw}, але фільтри лишили 0 — пом'якши «Мін. переглядів» / «Макс. підписників»`); }
+      else { STATS.empty++; logLine('warn',`🔍 «${ev.query}»: пошук дав 0 — звузила дата/тип? спробуй «Будь-коли» / «Будь-яка»`); }
+    }
+    else { for(const v of ev.videos) ROWS.push(v); renderBody(); renderDash(); logLine('ok',`✓ «${ev.query}» — ${ev.count} відео${ev.raw>ev.count?` (з ${ev.raw} знайдених)`:''} (всього ${ROWS.length})`); }
+  } else if(ev.type==='done'){
+    let tail='';
+    const parts=[];
+    if(STATS.filtered) parts.push(`${STATS.filtered} відсіяли фільтри`);
+    if(STATS.empty) parts.push(`${STATS.empty} порожні (дата/тип)`);
+    if(STATS.err) parts.push(`${STATS.err} з помилкою`);
+    if(parts.length) tail=' · '+parts.join(', ');
+    $('status').textContent=`✓ Готово. Зібрано ${ROWS.length} відео${tail}.`;
+    logLine('done',`✓ Готово. Зібрано ${ROWS.length} відео${tail}.`);
+    if(ROWS.length===0){
+      if(STATS.empty>=STATS.filtered && STATS.empty) logLine('warn','💡 Майже все порожнє — найчастіше це фільтр ДАТИ. Постав «Будь-коли» і запусти ще раз.');
+      else if(STATS.filtered) logLine('warn',"💡 Усе відсіяли фільтри — зменш «Мін. переглядів» і збільш/прибери «Макс. підписників» (0 = без обмеження).");
+      else if(STATS.err) logLine('warn','💡 Скрізь помилки — можливо тимчасовий блок YouTube. Зачекай, зменш потоки або зміни IP/VPN.');
+    }
+    $('bar').style.width='100%'; renderDash();
+  }
 }
 function setRunning(on){ $('runBtn').style.display=on?'none':'flex'; $('stopBtn').style.display=on?'flex':'none'; }
 

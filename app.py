@@ -80,17 +80,22 @@ def run_search(payload, emit):
     sp = scraper.build_sp(sort=sort, date=date, typ=typ,
                           dur=(0 if mode == 'short' else dur), features=features)
 
-    emit({'type': 'start', 'total': len(queries), 'sp': sp, 'mode': mode, 'threads': threads})
+    emit({'type': 'start', 'total': len(queries), 'sp': sp, 'mode': mode,
+          'threads': threads, 'dateFilter': date > 0})
 
-    # обробка одного запиту (виконується у воркер-потоці при threads>1; emit тут НЕ викликаємо)
+    # обробка одного запиту (виконується у воркер-потоці при threads>1; emit тут НЕ викликаємо).
+    # Повертає raw (скільки пошук знайшов ДО фільтрів), count (після), і reason при 0:
+    #   'empty'    — пошук нічого не дав (звузила дата/тип/тривалість);
+    #   'filtered' — знайдено, але пост-фільтри (мін.перегляди/макс.підписники) лишили 0.
     def process_one(query):
         try:
             videos, err = scraper.search_niche(query, sp=sp, max_results=max_results,
                                                mode=mode, hl=hl, gl=gl)
         except Exception as e:
-            return {'count': 0, 'videos': [], 'error': str(e)}
+            return {'count': 0, 'raw': 0, 'videos': [], 'error': str(e)}
         if err:
-            return {'count': 0, 'videos': [], 'error': err}
+            return {'count': 0, 'raw': 0, 'videos': [], 'error': err}
+        raw = len(videos)
         # 1) пост-фільтр по мін. переглядах
         if min_views:
             videos = [v for v in videos if (v.get('views') or 0) >= min_views]
@@ -105,7 +110,9 @@ def run_search(payload, emit):
                 videos = [v for v in videos if v.get('subs') is None or v['subs'] <= max_subs]
         for v in videos:
             v['query'] = query
-        return {'count': len(videos), 'videos': videos}
+        count = len(videos)
+        reason = None if count else ('empty' if raw == 0 else 'filtered')
+        return {'count': count, 'raw': raw, 'videos': videos, 'reason': reason}
 
     total = len(queries)
     if threads <= 1:
@@ -126,7 +133,7 @@ def run_search(payload, emit):
                 try:
                     r = fut.result()
                 except Exception as e:
-                    r = {'count': 0, 'videos': [], 'error': str(e)}
+                    r = {'count': 0, 'raw': 0, 'videos': [], 'error': str(e)}
                 done += 1
                 emit({'type': 'progress', 'done': done, 'total': total, 'query': query})
                 emit({'type': 'result', 'index': i, 'query': query, **r})
